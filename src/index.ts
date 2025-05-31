@@ -63,11 +63,7 @@ program
 
         if (options.outputPlain) {
           // 输出纯文本格式
-          const plainContent = analyzer.generatePlainTextContent(commits);
-          console.log("📄 纯文本输出 (可直接复制给大模型):");
-          console.log("=" + "=".repeat(50));
-          console.log(plainContent);
-          console.log("=" + "=".repeat(50));
+          analyzer.outputPlainText(commits);
         } else {
           // 输出格式化内容
           analyzer.formatCommits(commits);
