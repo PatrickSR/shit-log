@@ -41,12 +41,14 @@ program
   .option("--date <date>", "筛选日期 (YYYY-MM-DD 或 YYYY-MM-DD..YYYY-MM-DD)")
   .option("--branch <branch>", "筛选分支名")
   .option("--author <author>", "筛选作者名")
+  .option("--output-plain", "输出纯文本格式 (适合复制给大模型)")
   .action(
     async (options: {
       dir: string;
       date?: string;
       branch?: string;
       author?: string;
+      outputPlain?: boolean;
     }) => {
       try {
         console.log("🔍 开始分析 Git 项目...\n");
@@ -59,7 +61,17 @@ program
           author: options.author,
         });
 
-        analyzer.formatCommits(commits);
+        if (options.outputPlain) {
+          // 输出纯文本格式
+          const plainContent = analyzer.generatePlainTextContent(commits);
+          console.log("📄 纯文本输出 (可直接复制给大模型):");
+          console.log("=" + "=".repeat(50));
+          console.log(plainContent);
+          console.log("=" + "=".repeat(50));
+        } else {
+          // 输出格式化内容
+          analyzer.formatCommits(commits);
+        }
       } catch (error) {
         console.error(
           "❌ 分析失败:",
