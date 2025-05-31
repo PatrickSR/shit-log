@@ -13,6 +13,9 @@ export interface CommitInfo {
   message: string;
   branch: string;
   files: string[];
+  changes: string;
+  insertions: number;
+  deletions: number;
 }
 
 export interface DateRange {

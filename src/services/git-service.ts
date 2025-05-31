@@ -62,8 +62,10 @@ export class GitService {
     dateRange: DateRange,
     author?: string
   ): Promise<CommitInfo[]> {
+    // 添加 --no-merges 参数过滤掉合并提交
     const logs: LogResult = await this.git.log([
       branch,
+      "--no-merges", // 过滤合并提交
       "--since=" + dateRange.since,
       "--until=" + dateRange.until + " 23:59:59",
     ]);
@@ -83,6 +85,12 @@ export class GitService {
       // 获取该提交涉及的文件
       const files = await this.getCommitFiles(commit.hash);
 
+      // 获取代码变更内容
+      const changes = await this.getCommitChanges(commit.hash);
+
+      // 获取统计信息
+      const stats = await this.getCommitStats(commit.hash);
+
       const commitInfo: CommitInfo = {
         hash: commit.hash,
         date: commit.date,
@@ -91,6 +99,9 @@ export class GitService {
         message: commit.message,
         branch: branch,
         files: files,
+        changes: changes,
+        insertions: stats.insertions,
+        deletions: stats.deletions,
       };
 
       commits.push(commitInfo);
@@ -121,6 +132,68 @@ export class GitService {
       } catch (showError) {
         // 如果仍然失败，设为空数组
         return [];
+      }
+    }
+  }
+
+  /**
+   * 获取提交的代码变更内容
+   */
+  private async getCommitChanges(commitHash: string): Promise<string> {
+    try {
+      // 使用 git show 获取完整的代码变更
+      const changes = await this.git.show([
+        commitHash,
+        "--pretty=format:", // 不显示提交信息
+        "--no-color", // 不使用颜色
+      ]);
+      return changes.trim();
+    } catch (error) {
+      // 如果是第一个提交，尝试获取所有文件的内容
+      try {
+        const changes = await this.git.show([
+          commitHash,
+          "--pretty=format:",
+          "--root", // 显示根提交的完整内容
+          "--no-color",
+        ]);
+        return changes.trim();
+      } catch (showError) {
+        return "无法获取代码变更内容";
+      }
+    }
+  }
+
+  /**
+   * 获取提交的统计信息（新增和删除行数）
+   */
+  private async getCommitStats(
+    commitHash: string
+  ): Promise<{ insertions: number; deletions: number }> {
+    try {
+      const diffSummary = await this.git.diffSummary([
+        `${commitHash}^`,
+        commitHash,
+      ]);
+
+      return {
+        insertions: diffSummary.insertions || 0,
+        deletions: diffSummary.deletions || 0,
+      };
+    } catch (error) {
+      // 如果是第一个提交，尝试获取统计信息
+      try {
+        const diffSummary = await this.git.diffSummary([commitHash, "--root"]);
+
+        return {
+          insertions: diffSummary.insertions || 0,
+          deletions: diffSummary.deletions || 0,
+        };
+      } catch (statsError) {
+        return {
+          insertions: 0,
+          deletions: 0,
+        };
       }
     }
   }

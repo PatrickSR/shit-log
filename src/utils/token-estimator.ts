@@ -53,6 +53,7 @@ export class TokenEstimator {
       content += `作者: ${commit.author} <${commit.email}>\n`;
       content += `分支: ${commit.branch}\n`;
       content += `消息: ${commit.message}\n`;
+      content += `变更统计: +${commit.insertions} -${commit.deletions}\n`;
 
       if (commit.files.length > 0) {
         content += `修改文件 (${commit.files.length}):\n`;
@@ -61,14 +62,24 @@ export class TokenEstimator {
         });
       }
 
+      // 添加代码变更内容
+      if (commit.changes) {
+        content += `代码变更:\n`;
+        content += `${commit.changes}\n`;
+      }
+
       content += `\n`;
     });
 
     // 添加统计信息
+    const totalInsertions = commits.reduce((sum, c) => sum + c.insertions, 0);
+    const totalDeletions = commits.reduce((sum, c) => sum + c.deletions, 0);
+
     content += `统计信息:\n`;
     content += `总提交数: ${commits.length}\n`;
     content += `涉及作者: ${new Set(commits.map((c) => c.author)).size}\n`;
     content += `修改文件: ${new Set(commits.flatMap((c) => c.files)).size}\n`;
+    content += `代码变更: +${totalInsertions} -${totalDeletions}\n`;
 
     return content;
   }

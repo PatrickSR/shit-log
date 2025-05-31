@@ -25,12 +25,27 @@ export class Formatter {
       console.log(`   👤 作者: ${commit.author} <${commit.email}>`);
       console.log(`   🌿 分支: ${commit.branch}`);
       console.log(`   💬 消息: ${commit.message}`);
+      console.log(`   📊 变更: +${commit.insertions} -${commit.deletions}`);
 
       if (commit.files.length > 0) {
         console.log(`   📁 修改文件 (${commit.files.length}):`);
         commit.files.forEach((file) => {
           console.log(`      - ${file}`);
         });
+      }
+
+      // 显示代码变更内容（限制长度以避免输出过长）
+      if (commit.changes) {
+        console.log(`   🔧 代码变更:`);
+        const lines = commit.changes.split("\n");
+        const maxLines = 100; // 限制显示最多20行
+
+        if (lines.length > maxLines) {
+          console.log(`      ${lines.slice(0, maxLines).join("\n      ")}`);
+          console.log(`      ... (还有 ${lines.length - maxLines} 行变更内容)`);
+        } else {
+          console.log(`      ${commit.changes.replace(/\n/g, "\n      ")}`);
+        }
       }
 
       console.log(""); // 空行分隔
@@ -47,6 +62,9 @@ export class Formatter {
     commits: CommitInfo[],
     tokenEstimation: TokenEstimation
   ): void {
+    const totalInsertions = commits.reduce((sum, c) => sum + c.insertions, 0);
+    const totalDeletions = commits.reduce((sum, c) => sum + c.deletions, 0);
+
     console.log(`📊 统计信息:`);
     console.log(`   📝 总提交数: ${commits.length}`);
     console.log(
@@ -55,6 +73,7 @@ export class Formatter {
     console.log(
       `   📁 修改文件: ${new Set(commits.flatMap((c) => c.files)).size}`
     );
+    console.log(`   📈 代码变更: +${totalInsertions} -${totalDeletions}`);
     console.log(
       `   🤖 估算 Token 数: ${tokenEstimation.tokens.toLocaleString()}`
     );
