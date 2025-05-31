@@ -1,0 +1,37 @@
+{
+  "name": "shit-log",
+  "version": "1.0.0",
+  "description": "A CLI tool for logging",
+  "main": "dist/index.js",
+  "bin": {
+    "shit-log": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "postbuild": "chmod +x dist/index.js",
+    "dev": "tsup --watch",
+    "prepublishOnly": "npm run build",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "cli",
+    "logging",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "commander": "^11.0.0"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
