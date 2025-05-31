@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { version, description } from "../package.json";
+import { GitAnalyzer } from "./git-analyzer";
 
 const program = new Command();
 
@@ -32,5 +33,41 @@ program
     console.log("所有日志记录已清空");
     // 这里可以添加实际的日志清空逻辑
   });
+
+program
+  .command("analysis")
+  .description("分析 Git 项目的提交记录")
+  .requiredOption("--dir <directory>", "项目目录路径")
+  .option("--date <date>", "筛选日期 (YYYY-MM-DD 或 YYYY-MM-DD..YYYY-MM-DD)")
+  .option("--branch <branch>", "筛选分支名")
+  .option("--author <author>", "筛选作者名")
+  .action(
+    async (options: {
+      dir: string;
+      date?: string;
+      branch?: string;
+      author?: string;
+    }) => {
+      try {
+        console.log("🔍 开始分析 Git 项目...\n");
+
+        const analyzer = new GitAnalyzer(options.dir);
+        const commits = await analyzer.analyze({
+          dir: options.dir,
+          date: options.date,
+          branch: options.branch,
+          author: options.author,
+        });
+
+        analyzer.formatCommits(commits);
+      } catch (error) {
+        console.error(
+          "❌ 分析失败:",
+          error instanceof Error ? error.message : error
+        );
+        process.exit(1);
+      }
+    }
+  );
 
 program.parse();

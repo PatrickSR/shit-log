@@ -29,7 +29,9 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "commander": "^11.0.0"
+    "commander": "^11.0.0",
+    "simple-git": "^3.20.0",
+    "dayjs": "^1.11.10"
   },
   "engines": {
     "node": ">=16"
