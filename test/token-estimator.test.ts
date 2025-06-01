@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { TokenEstimator } from "./token-estimator";
-import { CommitInfo } from "../types";
+import { TokenEstimator } from "../src/utils/token-estimator";
+import { CommitInfo } from "../src/types";
 
 describe("TokenEstimator", () => {
   describe("estimateTokens", () => {

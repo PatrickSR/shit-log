@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import dayjs from "dayjs";
-import { DateUtils } from "./date-utils";
+import { DateUtils } from "../src/utils/date-utils";
 
 describe("DateUtils", () => {
   beforeEach(() => {

@@ -2,13 +2,12 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    // 启用 TypeScript 支持
     environment: "node",
-    // 测试文件的匹配模式
-    include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-    // 排除的文件
+    include: [
+      "src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+      "test/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+    ],
     exclude: ["node_modules", "dist", ".idea", ".git", ".cache"],
-    // 覆盖率配置
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
