@@ -14,7 +14,11 @@
     "postbuild": "chmod +x dist/index.js",
     "dev": "tsup --watch",
     "prepublishOnly": "npm run build",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "cli",
@@ -24,14 +28,17 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.17.57",
+    "@vitest/coverage-v8": "^3.1.4",
+    "@vitest/ui": "^3.1.4",
     "tsup": "^8.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^3.1.4"
   },
   "dependencies": {
     "commander": "^11.0.0",
-    "simple-git": "^3.20.0",
-    "dayjs": "^1.11.10"
+    "dayjs": "^1.11.10",
+    "simple-git": "^3.20.0"
   },
   "engines": {
     "node": ">=16"
