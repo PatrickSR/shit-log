@@ -20,24 +20,45 @@ export class GitAnalyzer {
       throw new Error(`${options.dir} 不是一个有效的 git 仓库`);
     }
 
-    // 设置默认值
-    const branch = options.branch || (await this.gitService.getCurrentBranch());
+    // 设置分支逻辑
+    let branches: string | string[];
+    let branchDisplayName: string;
+
+    if (options.branch) {
+      // 如果传入了 branch，则锁定到指定分支
+      branches = options.branch;
+      branchDisplayName = options.branch;
+    } else {
+      // 如果没传入 branch，则分析所有分支（优先 origin）
+      const allBranches = await this.gitService.getAllBranches();
+      branches = allBranches;
+      branchDisplayName =
+        allBranches.length > 1
+          ? `所有分支 (${allBranches.length} 个)`
+          : allBranches[0]?.replace("remotes/origin/", "") || "main";
+    }
+
     const author = options.author || (await this.gitService.getCurrentUser());
     const dateRange = DateUtils.parseDateRange(options.date);
 
     // 输出分析信息
-    this.printAnalysisInfo(options.dir, branch, author, dateRange);
+    this.printAnalysisInfo(options.dir, branchDisplayName, author, dateRange);
 
     try {
       // 获取提交记录
       const commits = await this.gitService.getCommits(
-        branch,
+        branches,
         dateRange,
         author
       );
 
       if (commits.length === 0) {
         console.log("📭 没有找到匹配的提交记录");
+      } else {
+        // 如果是多分支分析，显示分支统计信息
+        if (Array.isArray(branches) && branches.length > 1) {
+          this.printBranchStats(commits);
+        }
       }
 
       return commits;
@@ -86,6 +107,26 @@ export class GitAnalyzer {
         dateRange.until !== dateRange.since ? ` 到 ${dateRange.until}` : ""
       }`
     );
+    console.log("");
+  }
+
+  /**
+   * 打印分支统计信息
+   */
+  private printBranchStats(commits: CommitInfo[]): void {
+    const branchStats = new Map<string, number>();
+
+    commits.forEach((commit) => {
+      const count = branchStats.get(commit.branch) || 0;
+      branchStats.set(commit.branch, count + 1);
+    });
+
+    console.log("📊 分支提交统计:");
+    Array.from(branchStats.entries())
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([branch, count]) => {
+        console.log(`   ${branch}: ${count} 个提交`);
+      });
     console.log("");
   }
 }
