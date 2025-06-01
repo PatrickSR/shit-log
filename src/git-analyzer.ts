@@ -3,9 +3,16 @@ import { GitService } from "./services/git-service";
 import { DateUtils } from "./utils/date-utils";
 import { TokenEstimator } from "./utils/token-estimator";
 import { Formatter } from "./utils/formatter";
+import { MarkdownExporter } from "./utils/markdown-exporter";
 
 export class GitAnalyzer {
   private gitService: GitService;
+  private lastAnalysisInfo?: {
+    dir: string;
+    branch: string;
+    author: string;
+    dateRange: string;
+  };
 
   constructor(projectDir: string) {
     this.gitService = new GitService(projectDir);
@@ -29,17 +36,27 @@ export class GitAnalyzer {
       branches = options.branch;
       branchDisplayName = options.branch;
     } else {
-      // 如果没传入 branch，则分析所有分支（优先 origin）
+      // 如果没传入 branch，则分析所有本地分支
       const allBranches = await this.gitService.getAllBranches();
       branches = allBranches;
       branchDisplayName =
         allBranches.length > 1
-          ? `所有分支 (${allBranches.length} 个)`
-          : allBranches[0]?.replace("remotes/origin/", "") || "main";
+          ? `所有本地分支 (${allBranches.length} 个)`
+          : allBranches[0] || "main";
     }
 
     const author = options.author || (await this.gitService.getCurrentUser());
     const dateRange = DateUtils.parseDateRange(options.date);
+
+    // 保存分析信息供导出使用
+    this.lastAnalysisInfo = {
+      dir: options.dir,
+      branch: branchDisplayName,
+      author: author,
+      dateRange: `${dateRange.since}${
+        dateRange.until !== dateRange.since ? ` 到 ${dateRange.until}` : ""
+      }`,
+    };
 
     // 输出分析信息
     this.printAnalysisInfo(options.dir, branchDisplayName, author, dateRange);
@@ -65,6 +82,24 @@ export class GitAnalyzer {
     } catch (error) {
       throw new Error(`分析 git 日志时发生错误: ${error}`);
     }
+  }
+
+  /**
+   * 导出为 markdown 文件
+   */
+  async exportToMarkdown(
+    commits: CommitInfo[],
+    filePath: string
+  ): Promise<void> {
+    if (!this.lastAnalysisInfo) {
+      throw new Error("请先执行分析操作");
+    }
+
+    await MarkdownExporter.exportToFile(
+      commits,
+      filePath,
+      this.lastAnalysisInfo
+    );
   }
 
   /**

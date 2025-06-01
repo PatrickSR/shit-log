@@ -43,39 +43,21 @@ export class GitService {
   }
 
   /**
-   * 获取所有分支（优先远程分支）
+   * 获取所有本地分支
    */
   async getAllBranches(): Promise<string[]> {
     try {
-      const branchSummary = await this.git.branch(["-a"]);
-      const branches: string[] = [];
-
-      // 首先收集远程分支（优先 origin）
-      const remoteBranches: string[] = [];
+      const branchSummary = await this.git.branch(["-l"]);
       const localBranches: string[] = [];
 
+      // 只收集本地分支
       for (const branchName of Object.keys(branchSummary.branches)) {
-        if (branchName.startsWith("remotes/origin/")) {
-          // 去掉 remotes/origin/ 前缀，跳过 HEAD
-          const cleanName = branchName.replace("remotes/origin/", "");
-          if (cleanName !== "HEAD") {
-            remoteBranches.push(branchName);
-          }
-        } else if (!branchName.startsWith("remotes/")) {
-          // 本地分支
+        if (!branchName.startsWith("remotes/")) {
           localBranches.push(branchName);
         }
       }
 
-      // 如果有 origin 分支，优先使用 origin 分支
-      if (remoteBranches.length > 0) {
-        branches.push(...remoteBranches);
-      } else {
-        // 没有 origin 分支，使用本地分支
-        branches.push(...localBranches);
-      }
-
-      return branches.length > 0 ? branches : ["main"];
+      return localBranches.length > 0 ? localBranches : ["main"];
     } catch (error) {
       console.warn("获取分支列表失败，使用当前分支:", error);
       return [await this.getCurrentBranch()];
